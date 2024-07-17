@@ -1,17 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "auraloss"
-version = "0.4.0"
-description = "Collection of audio-focused loss functions in PyTorch."
+dynamic = ["version"]
+description = "Audio-focused loss functions in PyTorch"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.6.0"
 authors = [
-    { name = "Christian Steinmetz" },
-    { email = "c.j.steinmetz@qmul.ac.uk" },
+    { name = "Christian Steinmetz", email = "c.j.steinmetz@qmul.ac.uk" },
 ]
-dependencies = ["torch", "numpy"]
-
-[build-system]
-# Minimum requirements for the build system to execute.
-requires = ["setuptools", "wheel", "attrs"]
-build-backend = "setuptools.build_meta"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy",
+    "torch",
+]
 
 [project.optional-dependencies]
-all = ["matplotlib", "librosa", "scipy", "scipy"]
+all = [
+    "librosa",
+    "matplotlib",
+    "scipy",
+]
+test = [
+    "resampy",
+    "torchaudio",
+    "tqdm",
+]
+
+[project.urls]
+Homepage = "https://github.com/csteinmetz1/auraloss"
+
+[tool.hatch.version]
+path = "setup.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/auraloss",
+]
+
