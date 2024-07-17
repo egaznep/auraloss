@@ -153,7 +153,7 @@ class TCNModel(torch.nn.Module):
 
 if __name__ == "__main__":
 
-    y, sr = torchaudio.load("../sounds/assets/drum_kit_clean.wav")
+    y, sr = torchaudio.load("https://csteinmetz1.github.io/sounds/assets/drum_kit_clean.wav")
     y /= y.abs().max()
     # y = y.repeat(2, 1)
     print(y.shape)
