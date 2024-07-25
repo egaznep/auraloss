@@ -1,6 +1,7 @@
 import torch
 import numpy as np
-from typing import List, Any
+from typing import List, Any, Iterable
+from itertools import repeat
 
 from .utils import apply_reduction, get_window
 from .perceptual import SumAndDifference, FIRFilter
@@ -370,7 +371,8 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
         scale (str, optional): Optional frequency scaling method, options include:
             ['mel', 'chroma']
             Default: None
-        n_bins (int, optional): Number of mel frequency bins. Required when scale = 'mel'. Default: None.
+        n_bins (int | list[int], optional): Number of mel frequency bins, could be a common value for each STFTLoss,
+            or could be provided independently. Required when scale = 'mel'. Default: None.
         scale_invariance (bool, optional): Perform an optimal scaling of the target. Default: False
     """
 
@@ -386,7 +388,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
         w_phs: float = 0.0,
         sample_rate: float = None,
         scale: str = None,
-        n_bins: int = None,
+        n_bins: int | List[int]= None,
         perceptual_weighting: bool = False,
         scale_invariance: bool = False,
         **kwargs,
@@ -398,7 +400,10 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
         self.win_lengths = win_lengths
 
         self.stft_losses = torch.nn.ModuleList()
-        for fs, ss, wl in zip(fft_sizes, hop_sizes, win_lengths):
+        if not isinstance(n_bins, Iterable):
+            n_bins = repeat(n_bins)
+
+        for fs, ss, wl, nb in zip(fft_sizes, hop_sizes, win_lengths, n_bins):
             self.stft_losses += [
                 STFTLoss(
                     fs,
@@ -411,7 +416,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
                     w_phs,
                     sample_rate,
                     scale,
-                    n_bins,
+                    nb,
                     perceptual_weighting,
                     scale_invariance,
                     **kwargs,
