@@ -423,7 +423,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
                 )
             ]
 
-    def forward(self, x, y):
+    def forward(self, x, y, mask=None):
         mrstft_loss = 0.0
         sc_mag_loss, log_mag_loss, lin_mag_loss, phs_loss = [], [], [], []
 
