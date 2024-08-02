@@ -17,7 +17,7 @@ class SpectralConvergenceLoss(torch.nn.Module):
         super(SpectralConvergenceLoss, self).__init__()
 
     def forward(self, x_mag, y_mag):
-        return torch.norm(y_mag - x_mag, dim=(-1, -2), keepdim=True, p="fro") / torch.norm(y_mag, dim=(-1, -2), p="fro")
+        return torch.norm(y_mag - x_mag, dim=(-1, -2), keepdim=True, p="fro") / torch.norm(y_mag, dim=(-1, -2), keepdim=True, p="fro")
 
 
 class STFTMagnitudeLoss(torch.nn.Module):
