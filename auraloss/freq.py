@@ -133,7 +133,6 @@ class STFTLoss(torch.nn.Module):
         self.fft_size = fft_size
         self.hop_size = hop_size
         self.win_length = win_length
-        self.window = get_window(window, win_length)
         self.w_sc = w_sc
         self.w_log_mag = w_log_mag
         self.w_lin_mag = w_lin_mag
@@ -151,6 +150,7 @@ class STFTLoss(torch.nn.Module):
 
         self.phs_used = bool(self.w_phs)
 
+        self.register_buffer('window', get_window(window, win_length))
         self.spectralconv = SpectralConvergenceLoss()
         self.logstft = STFTMagnitudeLoss(
             log=True,
@@ -176,8 +176,7 @@ class STFTLoss(torch.nn.Module):
             if self.scale == "mel":
                 assert sample_rate != None  # Must set sample rate to use mel scale
                 assert n_bins <= fft_size  # Must be more FFT bins than Mel bins
-                fb = librosa.filters.mel(sr=sample_rate, n_fft=fft_size, n_mels=n_bins)
-                fb = torch.tensor(fb).unsqueeze(0)
+                fb = np.expand_dims(librosa.filters.mel(sr=sample_rate, n_fft=fft_size, n_mels=n_bins), 0)
 
             elif self.scale == "chroma":
                 assert sample_rate != None  # Must set sample rate to use chroma scale
@@ -191,10 +190,7 @@ class STFTLoss(torch.nn.Module):
                     f"Invalid scale: {self.scale}. Must be 'mel' or 'chroma'."
                 )
 
-            self.register_buffer("fb", fb)
-
-        if scale is not None and device is not None:
-            self.fb = self.fb.to(self.device)  # move filterbank to device
+            self.register_buffer("fb", torch.tensor(fb, dtype=torch.get_default_dtype(), device=device))
 
         if self.perceptual_weighting:
             if sample_rate is None:
@@ -239,7 +235,6 @@ class STFTLoss(torch.nn.Module):
             target = target.view(bs * chs, 1, -1)
 
             # now apply the filter to both
-            self.prefilter.to(input.device)
             input, target = self.prefilter(input, target)
 
             # now move the channels back
@@ -247,14 +242,12 @@ class STFTLoss(torch.nn.Module):
             target = target.view(bs, chs, -1)
 
         # compute the magnitude and phase spectra of input and target
-        self.window = self.window.to(input.device)
 
         x_mag, x_phs = self.stft(input.view(-1, input.size(-1)))
         y_mag, y_phs = self.stft(target.view(-1, target.size(-1)))
 
         # apply relevant transforms
         if self.scale is not None:
-            self.fb = self.fb.to(input.device)
             x_mag = torch.matmul(self.fb, x_mag)
             y_mag = torch.matmul(self.fb, y_mag)
 

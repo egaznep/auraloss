@@ -72,11 +72,11 @@ class FIRFilter(torch.nn.Module):
         if filter_type == "hp":
             self.fir = torch.nn.Conv1d(1, 1, kernel_size=3, bias=False, padding=1)
             self.fir.weight.requires_grad = False
-            self.fir.weight.data = torch.tensor([1, -coef, 0]).view(1, 1, -1)
+            self.fir.weight[:] = torch.tensor([1, -coef, 0]).view(1, 1, -1)
         elif filter_type == "fd":
             self.fir = torch.nn.Conv1d(1, 1, kernel_size=3, bias=False, padding=1)
             self.fir.weight.requires_grad = False
-            self.fir.weight.data = torch.tensor([1, 0, -coef]).view(1, 1, -1)
+            self.fir.weight[:] = torch.tensor([1, 0, -coef]).view(1, 1, -1)
         elif filter_type == "aw":
             # Definition of analog A-weighting filter according to IEC/CD 1672.
             f1 = 20.598997
@@ -108,7 +108,7 @@ class FIRFilter(torch.nn.Module):
                 1, 1, kernel_size=ntaps, bias=False, padding=ntaps // 2
             )
             self.fir.weight.requires_grad = False
-            self.fir.weight.data = torch.tensor(taps.astype("float32")).view(1, 1, -1)
+            self.fir.weight.data[:] = torch.tensor(taps, dtype=torch.get_default_dtype()).view(1, 1, -1)
 
             if plot:
                 from .plotting import compare_filters
