@@ -367,7 +367,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
         n_bins (int | list[int], optional): Number of mel frequency bins, could be a common value for each STFTLoss,
             or could be provided independently. Required when scale = 'mel'. Default: None.
         scale_invariance (bool, optional): Perform an optimal scaling of the target. Default: False
-        reduction (str, optional): If 'mean', averages the losses, if 'sum' sums them. Default: 'mean'
+        global_reduction (str, optional): If 'mean', averages the losses, if 'sum' sums them. Default: 'mean'
     """
 
     def __init__(
@@ -385,7 +385,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
         n_bins: int | List[int]= None,
         perceptual_weighting: bool = False,
         scale_invariance: bool = False,
-        reduction: str = 'mean',
+        global_reduction: str = 'mean',
         **kwargs,
     ):
         super().__init__()
@@ -393,7 +393,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
         self.fft_sizes = fft_sizes
         self.hop_sizes = hop_sizes
         self.win_lengths = win_lengths
-        self.reduction = reduction
+        self.global_reduction = global_reduction
 
         self.stft_losses = torch.nn.ModuleList()
         if not isinstance(n_bins, Iterable):
@@ -434,7 +434,7 @@ class MultiResolutionSTFTLoss(torch.nn.Module):
             else:
                 mrstft_loss += f(x, y)
         
-        if self.reduction == 'mean':
+        if self.global_reduction == 'mean':
             mrstft_loss /= len(self.stft_losses)
 
         if f.output == "loss":
