@@ -58,8 +58,8 @@ class STFTMagnitudeLoss(torch.nn.Module):
 
     def forward(self, x_mag, y_mag):
         if self.log:
-            x_mag = torch.log(self.log_fac * x_mag + self.log_eps)
-            y_mag = torch.log(self.log_fac * y_mag + self.log_eps)
+            x_mag = torch.log(self.log_fac * torch.clamp(x_mag, min=self.log_eps))
+            y_mag = torch.log(self.log_fac * torch.clamp(y_mag, min=self.log_eps))
         return self.distance(x_mag, y_mag)
 
 
@@ -156,6 +156,7 @@ class STFTLoss(torch.nn.Module):
             log=True,
             reduction=reduction,
             distance=mag_distance,
+            log_eps=self.eps,
             **kwargs
         )
         self.linstft = STFTMagnitudeLoss(
@@ -216,7 +217,7 @@ class STFTLoss(torch.nn.Module):
             self.window,
             return_complex=True,
         )
-        x_mag = torch.clamp(torch.abs(x_stft), min=self.eps)
+        x_mag = torch.abs(x_stft)
 
         # torch.angle is expensive, so it is only evaluated if the values are used in the loss
         if self.phs_used:
@@ -242,7 +243,6 @@ class STFTLoss(torch.nn.Module):
             target = target.view(bs, chs, -1)
 
         # compute the magnitude and phase spectra of input and target
-
         x_mag, x_phs = self.stft(input.view(-1, input.size(-1)))
         y_mag, y_phs = self.stft(target.view(-1, target.size(-1)))
 
